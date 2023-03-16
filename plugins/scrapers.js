@@ -13,7 +13,8 @@ const {
 } = require('./misc/lang');
 const {
     getJson,
-    gtts
+    gtts,
+    chatGPT
 } = require('./misc/misc');
 const gis = require('async-g-i-s');
 const axios = require('axios');
@@ -113,9 +114,23 @@ Module({
     const results = await gis(query);
         await message.sendReply(Lang.IMG.format(results.splice(0, count).length, query))
         for (var i = 0; i < (results.length < count ? results.length : count); i++) {
-         try { var buff = await skbuffer(results[i].url); } catch { var buff = await skbuffer("https://miro.medium.com/max/800/1*hFwwQAW45673VGKrMPE2qQ.png") }
-         await message.send(buff, 'image');
+         try { var buff = await skbuffer(results[i].url); } catch {
+		 count++
+	        var buff = false
+	 }
+         if (buff) await message.send(buff, 'image');
         }
+}));
+Module({
+    pattern: 'gpt ?(.*)',
+    fromMe: w,
+    desc: "OpenAI's ChatGPT like languauge model, used for text generation",
+    use: 'AI',
+    usage: '.gpt Write a short note about India'
+}, (async (message, match) => {
+    if (!match[1]) return await message.sendReply("Need any query!");
+    const {result} = await chatGPT(match[1])
+    return await message.sendReply(result)
 }));
 Module({
     pattern: 'zipcode ?(.*)',
@@ -221,7 +236,7 @@ Module({
             video,
             mimetype: "video/mp4",
             caption,
-            thumbnail: await skbuffer(`https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`)
+            thumbnail: await skbuffer(`https://i.ytimg.com/vi/${vid}/hqdefault.jpg`)
         },{quoted:message.data});
     });
 Module({
